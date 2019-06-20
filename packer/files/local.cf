@@ -1,0 +1,35 @@
+## See 'perldoc Mail::SpamAssassin::Conf' for details.
+rewrite_header          Subject  *****SPAM*****
+lock_method    	        flock
+required_score		5.0
+
+## languages
+ok_languages            en es
+
+## bayesian classification
+use_bayes		1
+bayes_auto_learn 	1
+bayes_learn_to_journal  1
+bayes_ignore_header 	X-Bogosity
+bayes_ignore_header 	X-Spam-Flag
+bayes_ignore_header     X-Spam-Status
+bayes_path              /export/home/defang/bayes/bayes
+bayes_file_mode         0770
+
+## vipul's razor
+use_razor2              1
+razor_config            /export/home/defang/razor/razor-agent.conf
+
+## pyzor
+use_pyzor               1
+pyzor_options           --homedir /etc/mail/spamassassin/pyzor
+pyzor_path              /usr/bin/pyzor
+pyzor_max               5
+pyzor_timeout           5
+
+## dcc
+use_dcc                 1
+dcc_path                /usr/local/bin/dccproc
+dcc_home                /var/dcc
+add_header              all DCC _DCCB_: _DCCR_
+

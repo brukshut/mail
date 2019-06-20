@@ -1,0 +1,49 @@
+#!/bin/bash
+
+##
+## mail user_data
+##
+PATH=/bin:/sbin:/usr/bin:/usr/sbin
+
+## begin functions
+function delete_user {
+  local user=$1
+  [[ -z $(grep $user /etc/passwd) ]] || userdel -f $user
+  [[ -d /home/$user ]] && rm -rf /home/$user
+}
+
+function set_hostname {
+  local hostname=$1
+  hostname $hostname &&
+    echo $hostname | tee /etc/hostname
+}
+
+function add_host {
+  local ip=$1
+  local fqdn=$2
+  local hostname=$3
+  local template=/etc/cloud/templates/hosts.debian.tmpl
+  [[ -e $template ]] &&
+    ( perl -i -pe "s!(localhost\n)!$1\n$ip $fqdn $hostname\n!" $template
+      mv $template /etc/cloud/templates/hosts.tmpl )
+  ## cloud-init has already updated /etc/hosts
+  perl -i -pe "s!(localhost\n)!$1\n$ip $fqdn $hostname\n!" /etc/hosts
+}
+
+function resolv_conf {
+  local fqdn=$1
+  local domain=$(echo $fqdn | cut -d. -f2,3)
+  [[ -e /etc/resolv.conf ]] && 
+    local ns=$(grep nameserver /etc/resolv.conf)
+  echo "domain $domain" | tee /etc/resolv.conf
+  echo "search $domain" | tee -a /etc/resolv.conf  
+  echo $ns | tee -a /etc/resolv.conf  
+}
+## end functions
+
+## begin main
+delete_user admin
+set_hostname ${hostname}
+resolv_conf ${private_fqdn}
+add_host ${private_ip} ${private_fqdn} ${hostname}
+## end main

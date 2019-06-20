@@ -1,0 +1,158 @@
+ {      
+  "variables": {
+    "access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
+    "aws_vpc_id": "{{env `AWS_VPC_ID`}}",
+    "aws_subnet_id": "{{env `AWS_SUBNET_ID`}}",
+    "secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}"
+  },
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "access_key": "{{user `access_key`}}",
+      "secret_key": "{{user `secret_key`}}",
+      "region": "us-west-1",
+      "vpc_id": "{{user `aws_vpc_id`}}",
+      "subnet_id": "{{user `aws_subnet_id`}}",
+      "source_ami_filter": {
+        "filters": {
+          "virtualization-type": "hvm",
+          "name": "debian-stretch-hvm-x86_64-gp2-*",
+          "root-device-type": "ebs"
+        },
+        "owners": ["379101102735"],
+        "most_recent": "true"
+      },
+      "instance_type": "t2.micro",
+      "ssh_username": "admin",
+      "ami_name": "gturn-mail-base-{{timestamp}}",
+      "encrypt_boot": true,
+      "ami_block_device_mappings": [{
+        "device_name": "xvda",
+        "volume_size": 24,
+        "volume_type": "gp2",
+        "delete_on_termination": true
+      }],
+      "tags": {
+        "Name": "gturn-mail-base",
+        "OS_Version": "debian",
+        "Release": "stretch"
+      }
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "/Users/cgough/.ssh/id_rsa.pub",
+      "destination": "/tmp/authorized_keys"
+    },
+    {
+      "type": "file",
+      "source": "/Users/cgough/.ssh/.pw",
+      "destination": "/tmp/.pw"
+    },
+    {
+      "type": "file",
+      "source": "../../shared/files/dhclient.conf",
+      "destination": "/tmp/dhclient.conf"
+    },
+    {
+      "type": "file",
+      "source": "../../shared/files/restrict-default-route",
+      "destination": "/tmp/restrict-default-route"
+    },
+    {
+      "type": "file",
+      "source": "../../shared/files/eni_ctl.sh",
+      "destination": "/tmp/eni_ctl.sh"
+    },
+    {
+      "type": "file",
+      "source": "../../shared/files/eni.service",
+      "destination": "/tmp/eni.service"
+    },
+    {
+      "type": "file",
+      "source": "../../shared/files/add_routes.sh",
+      "destination": "/tmp/add_routes.sh"
+    },
+    {
+      "type": "file",
+      "source": "../../shared/files/ebs_ctl.sh",
+      "destination": "/tmp/ebs_ctl.sh"
+    },
+    {
+      "type": "file",
+      "source": "../../shared/files/ebs.service",
+      "destination": "/tmp/ebs.service"
+    },
+    {
+      "type": "file",
+      "source": "../../shared/files/interfaces",
+      "destination": "/tmp/interfaces"
+    },
+    {
+      "type": "file",
+      "source": "files/10-ssl.conf",
+      "destination": "/tmp/10-ssl.conf"
+    },
+    {
+      "type": "file",
+      "source": "files/dovecot.conf",
+      "destination": "/tmp/dovecot.conf"
+    },
+    {
+      "type": "file",
+      "source": "files/dovecot.service",
+      "destination": "/tmp/dovecot.service"
+    },
+    {
+      "type": "file",
+      "source": "files/dovecot.socket",
+      "destination": "/tmp/dovecot.socket"
+    },
+    {
+      "type": "file",
+      "source": "files/site.config.m4",
+      "destination": "/tmp/site.config.m4"
+    },
+    {
+      "type": "file",
+      "source": "files/sendmail.service",
+      "destination": "/tmp/sendmail.service"
+    },
+    {
+      "type": "file",
+      "source": "files/sendmail-runner.service",
+      "destination": "/tmp/sendmail-runner.service"
+    },
+    {
+      "type": "file",
+      "source": "files/mailcerts.sh",
+      "destination": "/tmp/mailcerts.sh"
+    },
+    {
+      "type": "file",
+      "source": "files/mailcerts.service",
+      "destination": "/tmp/mailcerts.service"
+    },
+    {
+      "type": "shell",
+      "scripts": [
+        "../../shared/scripts/install_packages.sh",
+        "scripts/install_packages.sh",
+        "../../shared/scripts/build_emacs.sh",
+        "scripts/create_users.sh",
+        "scripts/dotfiles.sh",
+        "../../shared/scripts/configure_eni.sh",
+        "../../shared/scripts/configure_interfaces.sh",
+        "../../shared/scripts/configure_ebs.sh",
+        "scripts/configure_certs.sh",
+        "scripts/build_openssl.sh",
+        "scripts/build_dovecot.sh",
+        "scripts/build_courier_unicode.sh",
+        "scripts/build_maildrop.sh",
+        "scripts/build_sendmail.sh"
+      ]
+    }
+  ]
+}

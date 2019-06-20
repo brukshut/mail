@@ -1,0 +1,12 @@
+[Unit]
+Description=dovecot imap
+After=local-fs.target network.target mailcerts.service
+Requires=mailcerts.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/sbin/dovecot -F
+NonBlocking=yes
+
+[Install]
+WantedBy=multi-user.target

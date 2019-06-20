@@ -1,0 +1,11 @@
+[Unit]
+Description=dovecot imap socket
+
+[Socket]
+ListenStream=0.0.0.0:143
+ListenStream=0.0.0.0:993
+KeepAlive=true
+
+[Install]
+WantedBy=sockets.target
+

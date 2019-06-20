@@ -1,0 +1,11 @@
+[Unit]
+Description=Mail Certificates
+After=syslog.target network.target
+RequiredBy=sendmail.service dovecot.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/mailcerts.sh -c mail.gturn.xyz -d -s
+
+[Install]
+WantedBy=multi-user.target

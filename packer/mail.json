@@ -1,0 +1,98 @@
+ {
+  "variables": {
+    "access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
+    "aws_vpc_id": "{{env `AWS_VPC_ID`}}",
+    "aws_subnet_id": "{{env `AWS_SUBNET_ID`}}",
+    "secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}"
+  },
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "access_key": "{{user `access_key`}}",
+      "secret_key": "{{user `secret_key`}}",
+      "region": "us-west-1",
+      "vpc_id": "{{user `aws_vpc_id`}}",
+      "subnet_id": "{{user `aws_subnet_id`}}",
+      "source_ami_filter": {
+        "filters": {
+          "virtualization-type": "hvm",
+          "name": "gturn-mail-base-*",
+          "root-device-type": "ebs"
+        },
+        "owners": ["780612422170"],
+        "most_recent": "true"
+      },
+      "instance_type": "t2.micro",
+      "ssh_username": "cgough",
+      "ssh_private_key_file": "/Users/cgough/.ssh/id_rsa",
+      "ami_name": "gturn-mail-{{timestamp}}",
+      "encrypt_boot": true,
+      "ami_block_device_mappings": [{
+        "device_name": "xvda",
+        "volume_size": 24,
+        "volume_type": "gp2",
+        "delete_on_termination": true
+      }],
+      "tags": {
+        "Name": "gturn-mail",
+        "OS_Version": "debian",
+        "Release": "stretch"
+      }
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "../../shared/files/motd",
+      "destination": "/tmp/motd"
+    },
+    {
+      "type": "file",
+      "source": "files/25-sendmail.conf",
+      "destination": "/tmp/25-sendmail.conf"
+    },
+    {
+      "type": "file",
+      "source": "files/sendmail.mc",
+      "destination": "/tmp/sendmail.mc"
+    },
+    {
+      "type": "file",
+      "source": "files/submit.mc",
+      "destination": "/tmp/submit.mc"
+    },
+    {
+      "type": "file",
+      "source": "files/opendkim.conf",
+      "destination": "/tmp/opendkim.conf"
+    },
+    {
+      "type": "file",
+      "source": "files/mimedefang-filter.pl",
+      "destination": "/tmp/mimedefang-filter.pl"
+    },
+    {
+      "type": "file",
+      "source": "files/local.cf",
+      "destination": "/tmp/local.cf"
+    },
+    {
+      "type": "file",
+      "source": "files/v310.pre",
+      "destination": "/tmp/v310.pre"
+    },
+    {
+      "type": "shell",
+      "scripts": [
+        "scripts/configure_sendmail.sh",
+        "scripts/sendmail_files.sh",
+        "scripts/build_dcc.sh",
+        "scripts/build_mailutils.sh",
+        "scripts/build_spamassassin.sh",
+        "scripts/build_mimedefang.sh",
+        "scripts/configure_opendkim.sh",
+        "../../shared/scripts/post_install.sh"
+      ]
+    }
+  ]
+}

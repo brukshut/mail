@@ -1,0 +1,14 @@
+[Unit]
+Description=Sendmail Mail Transport Agent
+After=syslog.target network.target mailcerts.service
+
+[Service]
+Type=forking
+PrivateTmp=yes
+RuntimeDirectory=sendmail-runner
+User=smmsp
+Group=smmsp
+ExecStart=/usr/local/sbin/sendmail -Ac -q1m
+
+[Install]
+WantedBy=multi-user.target
